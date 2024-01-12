@@ -1,5 +1,6 @@
 from django.db import models
 import json
+from django.utils import timezone
 
 
 class Candidate(models.Model):
@@ -10,6 +11,7 @@ class Candidate(models.Model):
     location = models.CharField(max_length=100)
     status = models.CharField(max_length=100)
     company_name = models.CharField(max_length=100)
+    created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         indexes = [

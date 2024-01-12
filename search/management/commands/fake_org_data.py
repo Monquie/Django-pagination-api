@@ -33,7 +33,7 @@ class Command(BaseCommand):
         )
 
         Organization.objects.create(
-            text_id='org-1', name='ting', candidate_display_config=json.dumps(default_config))
+            text_id='org-3', name='ting', candidate_display_config=json.dumps(default_config))
 
         Organization.objects.create(
             text_id='org-2', name='ting_ting', candidate_display_config=json.dumps(test_config))

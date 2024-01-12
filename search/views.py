@@ -1,42 +1,29 @@
-from django.views.decorators.http import require_http_methods
 from django.core.cache import cache
-from rest_framework import serializers
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
 
 from search.models import Candidate, Organization
-import json
+from drf_yasg.utils import swagger_auto_schema
+
+from .serializer import InputSerializer
 
 
-# @require_http_methods(["POST"])
+@swagger_auto_schema(method='post', request_body=InputSerializer, operation_description="Search for candidates")
 @api_view(['POST'])
 def filter(request: Request) -> Response:
-    class InputSerializer(serializers.Serializer):
-        department = serializers.CharField(required=False, max_length=100)
-        position = serializers.CharField(required=False, max_length=100)
-        location = serializers.CharField(required=False, max_length=100)
-        company_name = serializers.CharField(required=False, max_length=100)
-        status = serializers.ListField(
-            required=False, child=serializers.CharField())
-        cursor = serializers.IntegerField(required=False)  # used in paging
-        org_text_id = serializers.CharField(required=True, max_length=100)
-
     # check rate limitings
     client_ip = _get_client_ip(request)
     if _is_rate_limited(client_ip):
         return _build_response(
             success=False,
             response_code='EXCEED_NUMBER_OF_REQUEST',
-            errors='ERROR',
+            http_status=429,
         )
 
     # Validate input
     serializer = InputSerializer(data=request.data)
     if not serializer.is_valid():
-        print(request.data)
-        print(type(request.data))
-        print("Invalid request")
         return _build_response(
             success=False,
             response_code='INVALID_REQUEST_INPUTS',
@@ -67,19 +54,17 @@ def filter(request: Request) -> Response:
     if status:
         query['status__in'] = status  # Use __in
     if cursor:
-        query['id__gt'] = cursor  # use cursor based paging
+        query['created_at__gt'] = cursor  # use cursor based paging
 
     # Execute the query and limit to 300 results
     candidates = Candidate.objects.filter(
-        **query)[:300]  # limit display 6 pages
+        **query).order_by('created_at')[:300]  # limit display 6 pages
 
     # Get organization dynamic columns
     try:
         organization = Organization.objects.get(text_id=org_text_id)
         org_config = organization.get_candidate_display_config()
     except Organization.DoesNotExist:
-        print("Not exxist")
-        print(org_text_id)
         return _build_response(
             success=False,
             response_code='INVALID_ORGANIZATION_INPUTS',
@@ -95,6 +80,7 @@ def filter(request: Request) -> Response:
             location=candidate.location if org_config['location'] == 1 else None,
             status=candidate.status if org_config['status'] == 1 else None,
             company_name=candidate.company_name if org_config['company_name'] == 1 else None,
+            created_at=candidate.created_at
         )
         for candidate in candidates
     ]
@@ -111,9 +97,10 @@ def _is_rate_limited(ip):
     # Check and update rate limit count
     cache_key = f'rate_limit_{ip}'
     count = cache.get(cache_key, 0)
+    print(count)
     if count >= 10:
         return True
-    cache.set(cache_key, count + 1, timeout=1)  # Timeout set to 1 second
+    cache.set(cache_key, count + 1, timeout=60)  # Timeout set to 1 second
     return False
 
 
