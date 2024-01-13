@@ -1,6 +1,5 @@
 import faker
 from django.core.management.base import BaseCommand
-# Replace 'your_app' with the actual app name
 import random
 from search.models import Candidate, Organization
 
@@ -14,7 +13,7 @@ class Command(BaseCommand):
         for _ in range(1000):
             candidate = Candidate.objects.create(
                 name=fake.name(),
-                contact_info=fake.email(),  # You can customize this with other Faker providers
+                contact_info=fake.email(),
                 department=fake.job(),
                 position=fake.job(),
                 location=fake.city(),

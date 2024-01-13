@@ -1,7 +1,5 @@
 import faker
 from django.core.management.base import BaseCommand
-# Replace 'your_app' with the actual app name
-import random
 from search.models import Candidate, Organization
 import json
 

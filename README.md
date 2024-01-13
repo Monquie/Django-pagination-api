@@ -36,3 +36,7 @@ docker exec -it django_test /testing.sh
 ```bash
 docker exec -it django_test /runcommand.sh
 ```
+
+## Open API access ###
+
+Open browser and type in `http://127.0.0.1:8000/swagger/` after starting the project successfully. 

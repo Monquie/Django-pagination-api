@@ -8,6 +8,9 @@ from drf_yasg.utils import swagger_auto_schema
 
 from .serializer import InputSerializer
 
+MAX_RETRIEVED_ITEMS = 300
+MAX_REQUEST_PER_MINUTE = 10
+
 
 @swagger_auto_schema(method='post', request_body=InputSerializer, operation_description="Search for candidates")
 @api_view(['POST'])
@@ -27,13 +30,12 @@ def filter(request: Request) -> Response:
         return _build_response(
             success=False,
             response_code='INVALID_REQUEST_INPUTS',
-            http_status=422,
+            http_status=400,
             errors=serializer.errors,
         )
     valid_data = serializer.validated_data
 
     # Extract filter criteria
-    # valid_data = request.json()
     department = valid_data.get('department')
     position = valid_data.get('position')
     location = valid_data.get('location')
@@ -59,7 +61,8 @@ def filter(request: Request) -> Response:
 
     # Execute the query and limit to 300 results
     candidates = Candidate.objects.filter(
-        **query).order_by('created_at')[:300]  # limit display 6 pages
+        # limit display 6 pages
+        **query).order_by('created_at')[:MAX_RETRIEVED_ITEMS]
 
     # Get organization dynamic columns
     try:
@@ -69,7 +72,7 @@ def filter(request: Request) -> Response:
         return _build_response(
             success=False,
             response_code='INVALID_ORGANIZATION_INPUTS',
-            http_status=422,
+            http_status=400,
         )
 
     # Serialize the results
@@ -99,7 +102,7 @@ def _is_rate_limited(ip):
     # Check and update rate limit count
     cache_key = f'rate_limit_{ip}'
     count = cache.get(cache_key, 0)
-    if count >= 10:
+    if count >= MAX_REQUEST_PER_MINUTE:
         return True
     cache.set(cache_key, count + 1, timeout=60)  # Timeout set to 1 second
     return False
