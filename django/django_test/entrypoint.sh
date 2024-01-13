@@ -4,7 +4,7 @@ python3 -m venv /opt/venv
 /opt/venv/bin/pip install --upgrade pip
 /opt/venv/bin/pip install -r /backenddjango/requirements.txt
 # sh /wait-for-db.sh
-
+echo "Run here"
 cd /backenddjango
 # source /opt/venv/bin/activate
 # while true
@@ -12,6 +12,4 @@ cd /backenddjango
 #     sleep 1
 # done
 
-/opt/venv/bin/python manage.py makemigrations --settings=djangoProject.settings
-/opt/venv/bin/python manage.py migrate --settings=djangoProject.settings
 /opt/venv/bin/python manage.py runserver 0.0.0.0:8000 --settings=djangoProject.settings
