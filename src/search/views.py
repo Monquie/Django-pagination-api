@@ -27,6 +27,7 @@ def filter(request: Request) -> Response:
         return _build_response(
             success=False,
             response_code='INVALID_REQUEST_INPUTS',
+            http_status=422,
             errors=serializer.errors,
         )
     valid_data = serializer.validated_data
@@ -68,6 +69,7 @@ def filter(request: Request) -> Response:
         return _build_response(
             success=False,
             response_code='INVALID_ORGANIZATION_INPUTS',
+            http_status=422,
         )
 
     # Serialize the results
@@ -97,7 +99,6 @@ def _is_rate_limited(ip):
     # Check and update rate limit count
     cache_key = f'rate_limit_{ip}'
     count = cache.get(cache_key, 0)
-    print(count)
     if count >= 10:
         return True
     cache.set(cache_key, count + 1, timeout=60)  # Timeout set to 1 second

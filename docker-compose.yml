@@ -36,3 +36,6 @@ services:
     volumes:
       - ${DJANGO_SOURCE_ROOT}/:/backenddjango/
       - ./django/venv/:/opt/venv/
+    depends_on:
+      - db
+      - redis
