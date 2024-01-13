@@ -1,0 +1,38 @@
+version: '3.1'
+networks:
+  djangoTest:
+    external: true
+    name: djangoTest
+
+services:
+  db:
+    image: postgres:12-alpine
+    container_name: django_postgres
+    networks:
+      - djangoTest
+    ports:  # uncomment to expose port
+      - "5455:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+
+  redis:
+    image: redis:7.0.14
+    container_name: django_redis
+    networks:
+      - djangoTest
+    ports:  # uncomment to expose port
+      - "6380:6379"
+
+  django_test:
+    container_name: django_test
+    networks:
+      - djangoTest
+    build: ./django/django_test
+    ports:
+      - "8000:8000"
+    volumes:
+      - ${DJANGO_SOURCE_ROOT}/:/backenddjango/
+      - ./django/venv/:/opt/venv/
