@@ -2,12 +2,12 @@
 #!/bin/sh
 
 set -e
-until mysql -utingpay -ptingpay -htingpaydb -e 'select 1'; do
-  >&2 echo "MySQL is unavailable - sleeping"
+until psql -utingpay -ptingpay -htingpaydb -e 'select 1'; do
+  >&2 echo "PostgresDB is unavailable - sleeping"
   sleep 1
 done
 
   
->&2 echo "MySQL is up - executing command"
+>&2 echo "PostgresDB is up - executing command"
 exec "$@"
 
